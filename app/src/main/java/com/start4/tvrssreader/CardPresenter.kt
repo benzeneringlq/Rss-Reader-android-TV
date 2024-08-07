@@ -8,6 +8,8 @@ import android.util.Log
 import android.view.ViewGroup
 
 import com.bumptech.glide.Glide
+import com.prof18.rssparser.model.RssItem
+import com.start4.tvrssreader.rss.MyRssItem
 import kotlin.properties.Delegates
 
 /**
@@ -23,7 +25,8 @@ class CardPresenter : Presenter() {
         Log.d(TAG, "onCreateViewHolder")
 
         sDefaultBackgroundColor = ContextCompat.getColor(parent.context, R.color.default_background)
-        sSelectedBackgroundColor = ContextCompat.getColor(parent.context, R.color.selected_background)
+        sSelectedBackgroundColor =
+            ContextCompat.getColor(parent.context, R.color.selected_background)
         mDefaultCardImage = ContextCompat.getDrawable(parent.context, R.drawable.movie)
 
         val cardView = object : ImageCardView(parent.context) {
@@ -40,16 +43,16 @@ class CardPresenter : Presenter() {
     }
 
     override fun onBindViewHolder(viewHolder: Presenter.ViewHolder, item: Any) {
-        val movie = item as Movie
+        val rssItem = item as MyRssItem
         val cardView = viewHolder.view as ImageCardView
 
         Log.d(TAG, "onBindViewHolder")
-        if (movie.cardImageUrl != null) {
-            cardView.titleText = movie.title
-            cardView.contentText = movie.studio
+        if (rssItem.title != null) {
+            cardView.titleText = rssItem.title
+            cardView.contentText = rssItem.description
             cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT)
             Glide.with(viewHolder.view.context)
-                .load(movie.cardImageUrl)
+                .load(rssItem.image)
                 .centerCrop()
                 .error(mDefaultCardImage)
                 .into(cardView.mainImageView)

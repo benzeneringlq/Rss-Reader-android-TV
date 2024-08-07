@@ -1,0 +1,8 @@
+<resources>
+    <!-- Reply Preference -->
+    <string-array name="Proxy">
+        <item>HTTP</item>
+        <item>SOCKS5</item>
+    </string-array>
+
+</resources>

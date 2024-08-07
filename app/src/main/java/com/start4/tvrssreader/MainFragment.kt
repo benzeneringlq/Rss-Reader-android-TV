@@ -1,45 +1,42 @@
 package com.start4.tvrssreader
 
-import java.util.Collections
-import java.util.Timer
-import java.util.TimerTask
-
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import androidx.leanback.app.BackgroundManager
-import androidx.leanback.app.BrowseSupportFragment
-import androidx.leanback.widget.ArrayObjectAdapter
-import androidx.leanback.widget.HeaderItem
-import androidx.leanback.widget.ImageCardView
-import androidx.leanback.widget.ListRow
-import androidx.leanback.widget.ListRowPresenter
-import androidx.leanback.widget.OnItemViewClickedListener
-import androidx.leanback.widget.OnItemViewSelectedListener
-import androidx.leanback.widget.Presenter
-import androidx.leanback.widget.Row
-import androidx.leanback.widget.RowPresenter
-import androidx.core.app.ActivityOptionsCompat
-import androidx.core.content.ContextCompat
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
-
+import androidx.core.app.ActivityOptionsCompat
+import androidx.core.content.ContextCompat
+import androidx.leanback.app.BackgroundManager
+import androidx.leanback.app.BrowseSupportFragment
+import androidx.leanback.widget.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
+import com.google.gson.Gson
+import com.prof18.rssparser.model.RssItem
+import com.start4.tvrssreader.rss.MyRssItem
+import kotlinx.coroutines.DelicateCoroutinesApi
+import java.util.*
+
 
 /**
  * Loads a grid of cards with movies to browse.
  */
 class MainFragment : BrowseSupportFragment() {
 
+    private val gson = Gson()
+    lateinit var viewModel: MyViewModel
+    private lateinit var rowsAdapter: ArrayObjectAdapter
     private val mHandler = Handler(Looper.myLooper()!!)
     private lateinit var mBackgroundManager: BackgroundManager
     private var mDefaultBackground: Drawable? = null
@@ -69,10 +66,10 @@ class MainFragment : BrowseSupportFragment() {
     private fun prepareBackgroundManager() {
 
         mBackgroundManager = BackgroundManager.getInstance(activity)
-        mBackgroundManager.attach(activity!!.window)
-        mDefaultBackground = ContextCompat.getDrawable(context!!, R.drawable.default_background)
+        mBackgroundManager.attach(requireActivity().window)
+        mDefaultBackground = ContextCompat.getDrawable(requireContext(), R.drawable.default_background)
         mMetrics = DisplayMetrics()
-        activity!!.windowManager.defaultDisplay.getMetrics(mMetrics)
+        requireActivity().windowManager.defaultDisplay.getMetrics(mMetrics)
     }
 
     private fun setupUIElements() {
@@ -82,28 +79,28 @@ class MainFragment : BrowseSupportFragment() {
         isHeadersTransitionOnBackEnabled = true
 
         // set fastLane (or headers) background color
-        brandColor = ContextCompat.getColor(context!!, R.color.fastlane_background)
+        brandColor = ContextCompat.getColor(requireContext(), R.color.fastlane_background)
         // set search icon color
-        searchAffordanceColor = ContextCompat.getColor(context!!, R.color.search_opaque)
+        searchAffordanceColor = ContextCompat.getColor(requireContext(), R.color.search_opaque)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun loadRows() {
-        val list = MovieList.list
+        rowsAdapter = ArrayObjectAdapter(ListRowPresenter())
+        adapter = rowsAdapter
 
-        val rowsAdapter = ArrayObjectAdapter(ListRowPresenter())
-        val cardPresenter = CardPresenter()
-
-        for (i in 0 until NUM_ROWS) {
-            if (i != 0) {
-                Collections.shuffle(list)
-            }
-            val listRowAdapter = ArrayObjectAdapter(cardPresenter)
-            for (j in 0 until NUM_COLS) {
-                listRowAdapter.add(list[j % 5])
-            }
-            val header = HeaderItem(i.toLong(), MovieList.MOVIE_CATEGORY[i])
-            rowsAdapter.add(ListRow(header, listRowAdapter))
-        }
+        // 初始化 ViewModel
+//        val application: MyApplication = requireContext().applicationContext as MyApplication
+//        viewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application)).get(MyViewModel::class.java)
+        viewModel = ViewModelProvider(requireActivity())[MyViewModel::class.java];
+        // 观察数据变化
+        viewModel.fetchRssData()
+//
+        // 观察 ViewModel 中的数据变化并更新 UI
+        viewModel.rssItems.observe(viewLifecycleOwner, androidx.lifecycle.Observer { rssItems ->
+            updateRows(rssItems)
+        })
+//---------------------------
 
         val gridHeader = HeaderItem(NUM_ROWS.toLong(), "PREFERENCES")
 
@@ -117,9 +114,19 @@ class MainFragment : BrowseSupportFragment() {
         adapter = rowsAdapter
     }
 
+    private fun updateRows(rssItems: List<MyRssItem>) {
+        rowsAdapter.clear()
+        for (item in rssItems) {
+            val header = item.channelId?.let { HeaderItem(it.toLong(), item.title) }
+            val listRowAdapter = ArrayObjectAdapter(CardPresenter())
+            listRowAdapter.add(item)
+            rowsAdapter.add(ListRow(header, listRowAdapter))
+        }
+    }
+
     private fun setupEventListeners() {
         setOnSearchClickedListener {
-            Toast.makeText(context!!, "Implement your own in-app search", Toast.LENGTH_LONG)
+            Toast.makeText(requireContext(), "Implement your own in-app search", Toast.LENGTH_LONG)
                 .show()
         }
 
@@ -135,10 +142,10 @@ class MainFragment : BrowseSupportFragment() {
             row: Row
         ) {
 
-            if (item is Movie) {
+            if (item is RssItem) {
                 Log.d(TAG, "Item: " + item.toString())
                 val intent = Intent(context!!, DetailsActivity::class.java)
-                intent.putExtra(DetailsActivity.MOVIE, item)
+                intent.putExtra(DetailsActivity.RSSITEM, gson.toJson(item))
 
                 val bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
                     activity!!,
@@ -150,6 +157,9 @@ class MainFragment : BrowseSupportFragment() {
             } else if (item is String) {
                 if (item.contains(getString(R.string.error_fragment))) {
                     val intent = Intent(context!!, BrowseErrorActivity::class.java)
+                    startActivity(intent)
+                } else if (item.contains(getString(R.string.personal_settings))) {
+                    val intent = Intent(context!!, SettingsActivity::class.java)
                     startActivity(intent)
                 } else {
                     Toast.makeText(context!!, item, Toast.LENGTH_SHORT).show()
@@ -173,7 +183,7 @@ class MainFragment : BrowseSupportFragment() {
     private fun updateBackground(uri: String?) {
         val width = mMetrics.widthPixels
         val height = mMetrics.heightPixels
-        Glide.with(context!!)
+        Glide.with(requireContext())
             .load(uri)
             .centerCrop()
             .error(mDefaultBackground)

@@ -30,6 +30,8 @@ import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
+import com.google.gson.Gson
+import com.prof18.rssparser.model.RssItem
 
 import java.util.Collections
 
@@ -38,8 +40,9 @@ import java.util.Collections
  * It shows a detailed view of video and its metadata plus related videos.
  */
 class VideoDetailsFragment : DetailsSupportFragment() {
-
-    private var mSelectedMovie: Movie? = null
+    private val gson= Gson()
+    private var json: String? = null
+    private var mSelectedRssItem: RssItem? = null
 
     private lateinit var mDetailsBackground: DetailsSupportFragmentBackgroundController
     private lateinit var mPresenterSelector: ClassPresenterSelector
@@ -48,32 +51,32 @@ class VideoDetailsFragment : DetailsSupportFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate DetailsFragment")
         super.onCreate(savedInstanceState)
-
         mDetailsBackground = DetailsSupportFragmentBackgroundController(this)
-
-        mSelectedMovie = activity!!.intent.getSerializableExtra(DetailsActivity.MOVIE) as Movie
-        if (mSelectedMovie != null) {
+        json=requireActivity().intent.getStringExtra(DetailsActivity.RSSITEM)  as String
+        mSelectedRssItem = gson.fromJson(json, RssItem::class.java)
+//        getSerializableExtra(DetailsActivity.RSSITEM) as RssItem
+        if (mSelectedRssItem != null) {
             mPresenterSelector = ClassPresenterSelector()
             mAdapter = ArrayObjectAdapter(mPresenterSelector)
             setupDetailsOverviewRow()
             setupDetailsOverviewRowPresenter()
-            setupRelatedMovieListRow()
+            setupRelatedRssItemListRow()
             adapter = mAdapter
-            initializeBackground(mSelectedMovie)
+            initializeBackground(mSelectedRssItem)
             onItemViewClickedListener = ItemViewClickedListener()
         } else {
-            val intent = Intent(context!!, MainActivity::class.java)
+            val intent = Intent(requireContext(), MainActivity::class.java)
             startActivity(intent)
         }
     }
 
-    private fun initializeBackground(movie: Movie?) {
+    private fun initializeBackground(rssItem: RssItem?) {
         mDetailsBackground.enableParallax()
-        Glide.with(context!!)
+        Glide.with(requireContext())
             .asBitmap()
             .centerCrop()
             .error(R.drawable.default_background)
-            .load(movie?.backgroundImageUrl)
+            .load(rssItem?.image)
             .into<SimpleTarget<Bitmap>>(object : SimpleTarget<Bitmap>() {
                 override fun onResourceReady(
                     bitmap: Bitmap,
@@ -86,13 +89,13 @@ class VideoDetailsFragment : DetailsSupportFragment() {
     }
 
     private fun setupDetailsOverviewRow() {
-        Log.d(TAG, "doInBackground: " + mSelectedMovie?.toString())
-        val row = DetailsOverviewRow(mSelectedMovie)
-        row.imageDrawable = ContextCompat.getDrawable(context!!, R.drawable.default_background)
-        val width = convertDpToPixel(context!!, DETAIL_THUMB_WIDTH)
-        val height = convertDpToPixel(context!!, DETAIL_THUMB_HEIGHT)
-        Glide.with(context!!)
-            .load(mSelectedMovie?.cardImageUrl)
+        Log.d(TAG, "doInBackground: " + mSelectedRssItem?.toString())
+        val row = DetailsOverviewRow(mSelectedRssItem)
+        row.imageDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.default_background)
+        val width = convertDpToPixel(requireContext(), DETAIL_THUMB_WIDTH)
+        val height = convertDpToPixel(requireContext(), DETAIL_THUMB_HEIGHT)
+        Glide.with(requireContext())
+            .load(mSelectedRssItem?.image)
             .centerCrop()
             .error(R.drawable.default_background)
             .into<SimpleTarget<Drawable>>(object : SimpleTarget<Drawable>(width, height) {
@@ -138,7 +141,7 @@ class VideoDetailsFragment : DetailsSupportFragment() {
         // Set detail background.
         val detailsPresenter = FullWidthDetailsOverviewRowPresenter(DetailsDescriptionPresenter())
         detailsPresenter.backgroundColor =
-            ContextCompat.getColor(context!!, R.color.selected_background)
+            ContextCompat.getColor(requireContext(), R.color.selected_background)
 
         // Hook up transition element.
         val sharedElementHelper = FullWidthDetailsOverviewSharedElementHelper()
@@ -150,29 +153,30 @@ class VideoDetailsFragment : DetailsSupportFragment() {
 
         detailsPresenter.onActionClickedListener = OnActionClickedListener { action ->
             if (action.id == ACTION_WATCH_TRAILER) {
-                val intent = Intent(context!!, PlaybackActivity::class.java)
-                intent.putExtra(DetailsActivity.MOVIE, mSelectedMovie)
+                val intent = Intent(requireContext(), PlaybackActivity::class.java)
+                intent.putExtra(DetailsActivity.RSSITEM, gson.toJson(mSelectedRssItem))
+//                intent.putExtra(DetailsActivity.RSSITEM, mSelectedRssItem)
                 startActivity(intent)
             } else {
-                Toast.makeText(context!!, action.toString(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), action.toString(), Toast.LENGTH_SHORT).show()
             }
         }
         mPresenterSelector.addClassPresenter(DetailsOverviewRow::class.java, detailsPresenter)
     }
 
-    private fun setupRelatedMovieListRow() {
-        val subcategories = arrayOf(getString(R.string.related_movies))
-        val list = MovieList.list
-
-        Collections.shuffle(list)
-        val listRowAdapter = ArrayObjectAdapter(CardPresenter())
-        for (j in 0 until NUM_COLS) {
-            listRowAdapter.add(list[j % 5])
-        }
-
-        val header = HeaderItem(0, subcategories[0])
-        mAdapter.add(ListRow(header, listRowAdapter))
-        mPresenterSelector.addClassPresenter(ListRow::class.java, ListRowPresenter())
+    private fun setupRelatedRssItemListRow() {
+//        val subcategories = arrayOf(getString(R.string.related_rssItems))
+//        val list = RssItemList.list
+//
+//        Collections.shuffle(list)
+//        val listRowAdapter = ArrayObjectAdapter(CardPresenter())
+//        for (j in 0 until NUM_COLS) {
+//            listRowAdapter.add(list[j % 5])
+//        }
+//
+//        val header = HeaderItem(0, subcategories[0])
+//        mAdapter.add(ListRow(header, listRowAdapter))
+//        mPresenterSelector.addClassPresenter(ListRow::class.java, ListRowPresenter())
     }
 
     private fun convertDpToPixel(context: Context, dp: Int): Int {
@@ -187,10 +191,10 @@ class VideoDetailsFragment : DetailsSupportFragment() {
             rowViewHolder: RowPresenter.ViewHolder,
             row: Row
         ) {
-            if (item is Movie) {
+            if (item is RssItem) {
                 Log.d(TAG, "Item: " + item.toString())
-                val intent = Intent(context!!, DetailsActivity::class.java)
-                intent.putExtra(resources.getString(R.string.movie), mSelectedMovie)
+                val intent = Intent(requireContext(), DetailsActivity::class.java)
+                intent.putExtra(DetailsActivity.RSSITEM, gson.toJson(item))
 
                 val bundle =
                     ActivityOptionsCompat.makeSceneTransitionAnimation(

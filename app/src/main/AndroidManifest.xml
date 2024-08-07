@@ -18,6 +18,11 @@
             android:supportsRtl="true"
             android:theme="@style/Theme.TvRssReader">
         <activity
+                android:name=".SettingsActivity"
+                android:theme="@style/Theme.AppCompat.Light"
+                android:exported="false"
+                android:label="@string/title_activity_settings"/>
+        <activity
                 android:name=".MainActivity"
                 android:banner="@drawable/app_icon_your_company"
                 android:exported="true"

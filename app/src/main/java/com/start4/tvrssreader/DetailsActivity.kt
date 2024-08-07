@@ -21,5 +21,6 @@ class DetailsActivity : FragmentActivity() {
     companion object {
         const val SHARED_ELEMENT_NAME = "hero"
         const val MOVIE = "Movie"
+        const val RSSITEM = "RSSITEM"
     }
 }
