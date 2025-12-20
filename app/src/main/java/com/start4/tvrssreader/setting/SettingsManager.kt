@@ -5,7 +5,8 @@ import com.start4.tvrssreader.setting.ProxyInfo
 
 class SettingsManager(context: Context) {
 
-    private val sharedPreferences: SharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    private val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
 
     fun saveProxyInfo(proxyInfo: ProxyInfo) {

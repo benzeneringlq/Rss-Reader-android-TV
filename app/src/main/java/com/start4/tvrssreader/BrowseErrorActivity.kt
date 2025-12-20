@@ -11,6 +11,7 @@ import android.widget.FrameLayout
 import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import com.start4.tvrssreader.ui.main.MainFragment
 
 /**
  * BrowseErrorActivity shows how to use ErrorFragment.
@@ -61,7 +62,8 @@ class BrowseErrorActivity : FragmentActivity() {
         ): View? {
             val progressBar = ProgressBar(container?.context)
             if (container is FrameLayout) {
-                val layoutParams = FrameLayout.LayoutParams(SPINNER_WIDTH, SPINNER_HEIGHT, Gravity.CENTER)
+                val layoutParams =
+                    FrameLayout.LayoutParams(SPINNER_WIDTH, SPINNER_HEIGHT, Gravity.CENTER)
                 progressBar.layoutParams = layoutParams
             }
             return progressBar
