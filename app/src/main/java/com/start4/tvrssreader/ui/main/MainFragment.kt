@@ -158,12 +158,12 @@ class MainFragment : BrowseSupportFragment() {
             // 修正：这里应该判断 MyRssItem，因为你的 Adapter 里放的是它
             if (item is MyRssItem) {
                 val intent = Intent(requireContext(), DetailsActivity::class.java)
-                intent.putExtra(DetailsActivity.RSSITEM, gson.toJson(item))
+                intent.putExtra("RSSITEM", gson.toJson(item))
 
                 val bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
                     requireActivity(),
                     (itemViewHolder.view as ImageCardView).mainImageView,
-                    DetailsActivity.SHARED_ELEMENT_NAME
+                    "hero"
                 ).toBundle()
                 startActivity(intent, bundle)
 

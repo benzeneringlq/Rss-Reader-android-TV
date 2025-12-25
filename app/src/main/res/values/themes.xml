@@ -1,3 +1,4 @@
 <resources>
-    <style name="Theme.TvRssReader" parent="@style/Theme.Leanback"/>
+    <!--    <style name="Theme.TvRssReader" parent="@style/Theme.Leanback"/>-->
+    <style name="Theme.TvRssReader" parent="@android:style/Theme.Black.NoTitleBar" />
 </resources>
