@@ -1,5 +1,6 @@
 package com.start4.tvrssreader.setting
 
+import android.content.Context
 import com.start4.tvrssreader.TvRssApp
 import java.net.Proxy.Type
 
@@ -13,7 +14,7 @@ data class ProxyInfo(
 ) {
     companion object {
         fun loadFromPreferences(app: TvRssApp): ProxyInfo? {
-            val prefs = app.getSharedPreferences("proxy_prefs", TvRssApp.MODE_PRIVATE)
+            val prefs = app.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
             val enable = prefs.getBoolean("proxy_enable", false)
             if (!enable) return null
 

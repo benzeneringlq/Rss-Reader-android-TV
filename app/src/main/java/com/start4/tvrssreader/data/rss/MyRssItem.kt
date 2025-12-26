@@ -1,6 +1,9 @@
 package com.start4.tvrssreader.data.rss
 
-import androidx.room.*
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "rss_item",
@@ -12,9 +15,7 @@ import androidx.room.*
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [
-        Index("channelId") // 创建一个索引，覆盖 channel 列
-    ]
+    indices = [Index(value = ["link"], unique = true)]
 )
 data class MyRssItem(
     @PrimaryKey(autoGenerate = true)
@@ -22,6 +23,7 @@ data class MyRssItem(
     val channelId: Long? = null,
     var title: String? = null,
     var description: String? = null,
+    var content: String? = null,
     var link: String? = null,
     var pubDate: String? = null,
     var image: String? = null,

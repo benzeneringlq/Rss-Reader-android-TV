@@ -1,13 +1,14 @@
 package com.start4.tvrssreader.data.rss
 
-import android.app.Application
 import android.icu.text.SimpleDateFormat
+import android.util.Log
 import androidx.lifecycle.LiveData
 import com.prof18.rssparser.model.RssChannel
-import com.start4.tvrssreader.RssData
-import com.start4.tvrssreader.data.local.RssDatabase
+import com.start4.tvrssreader.data.local.RssDao
 import com.start4.tvrssreader.data.network.MyNetwork
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
@@ -17,10 +18,13 @@ import java.util.Locale
  * 2. 提供数据访问接口
  * 3. 处理数据转换和缓存逻辑
  */
-class RssItemRepository(application: Application) {
-    private val rssItemDao = RssDatabase.getDatabase(application).rssItemDao()
+class RssItemRepository(
+    private val rssItemDao: RssDao,
+    private val myNetworkClient: MyNetwork
+) {
+    //        private val rssItemDao = RssDatabase.getDatabase(application).rssItemDao()
+    //    private val myNetworkClient = MyNetwork()
     private val parseRss = ParseRss()
-    private val myNetworkClient = MyNetwork()
 
     private val dateFormatter = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH)
 
@@ -47,11 +51,13 @@ class RssItemRepository(application: Application) {
             val xmlString = myNetworkClient.fetchXmlData(rssChannelUrl)
 
             // 2. 解析 RSS
+            var xmlStringhead: String = xmlString.take(100)
+            Log.d("RssItemRepository", "Fetched XML: $xmlStringhead")
             val rssChannel: RssChannel = parseRss.parseRssFromXml(xmlString)
 
             // 3. 检查频道是否已存在，不存在则插入
-            var channelId = rssItemDao.getChannelIdByTitle(rssChannel.title ?: "")
-
+//            var channelId = rssItemDao.getChannelIdByTitle(rssChannel.title ?: "")
+            var channelId = rssItemDao.getChannelIdByUrl(rssChannel.link ?: "")
             if (channelId == 0L) {
                 val myRssChannel = MyRssChannel(
                     url = rssChannel.link,
@@ -69,6 +75,7 @@ class RssItemRepository(application: Application) {
                     channelId = channelId,
                     title = item.title,
                     description = item.description,
+                    content = item.content ?: item.description,
                     link = item.link,
                     pubDate = item.pubDate,
                     image = item.image
@@ -85,17 +92,44 @@ class RssItemRepository(application: Application) {
     /**
      * 刷新所有 RSS 频道
      */
-    suspend fun refreshAllChannels(): Result<Unit> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val urls = getRssChannelUrls()
-                urls.forEach { url ->
-                    fetchAndSaveRssChannel(url)
+//    suspend fun refreshAllChannels(): Result<Unit> {
+//        return withContext(Dispatchers.IO) {
+//            try {
+//                val urls = getRssChannelUrls()
+//                urls.forEach { url ->
+//                    Log.d("RssItemRepository", "Refreshing RSS channel: $url")
+//                    fetchAndSaveRssChannel(url)
+//                }
+//                Result.success(Unit)
+//            } catch (e: Exception) {
+//                Result.failure(e)
+//            }
+//        }
+//    }
+    suspend fun refreshAllChannels(urls: List<String>) {
+        withContext(Dispatchers.IO) {
+            // 使用 async 并发开启所有请求
+            val deferredResults = urls.map { url ->
+                async {
+                    safeFetchAndSave(url)
                 }
-                Result.success(Unit)
-            } catch (e: Exception) {
-                Result.failure(e)
             }
+
+            // 等待所有结果返回（即使有的快有的慢，也会并行执行）
+            val allResults = deferredResults.awaitAll()
+
+            Log.d("RSS_SYNC", "所有订阅更新完成")
+        }
+    }
+
+    // 处理单个 URL 的抓取，增加异常捕获
+    suspend fun safeFetchAndSave(url: String): List<MyRssItem> {
+        return try {
+            // 你的原始逻辑
+            fetchAndSaveRssChannel(url)
+        } catch (e: Exception) {
+            Log.e("RSS_ERROR", "无法加载网址: $url, 错误: ${e.message}")
+            emptyList() // 报错了就返回空列表，不阻塞别人
         }
     }
 

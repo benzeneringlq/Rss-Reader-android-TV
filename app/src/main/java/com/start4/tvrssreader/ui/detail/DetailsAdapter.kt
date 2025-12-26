@@ -4,14 +4,11 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.RecyclerView
+import io.noties.markwon.Markwon
 
-class DetailsAdapter(private val items: List<DetailBlock>) :
+class DetailsAdapter(private val items: List<DetailBlock>, private val markwon: Markwon) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-    override fun getItemViewType(position: Int): Int = when (items[position]) {
-        is DetailBlock.Header -> 0
-        is DetailBlock.Body -> 1
-    }
+        
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val context = parent.context
@@ -30,6 +27,7 @@ class DetailsAdapter(private val items: List<DetailBlock>) :
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = items[position]
+        // 假设你的 itemView 就是 TextView，如果不是，请用 holder.itemView.findViewById 取出
         val tv = holder.itemView as TextView
 
         when (item) {
@@ -41,9 +39,13 @@ class DetailsAdapter(private val items: List<DetailBlock>) :
             }
 
             is DetailBlock.Body -> {
-                tv.text = item.text
+                // 核心改动：不再使用 tv.text = item.text
+                // Markwon 会自动处理 item.text 中的 HTML/Markdown 标签
+                markwon.setMarkdown(tv, item.text)
+
+                // 样式微调
                 tv.textSize = 24f
-                tv.setLineSpacing(0f, 1.4f) // 增加行间距，方便 TV 阅读
+                tv.setLineSpacing(0f, 1.4f)
                 tv.setPadding(0, 20, 0, 20)
                 tv.setTextColor("#C4C7C8".toColorInt())
             }
@@ -51,4 +53,11 @@ class DetailsAdapter(private val items: List<DetailBlock>) :
     }
 
     override fun getItemCount() = items.size
+    override fun getItemViewType(position: Int): Int {
+        return when (items[position]) {
+            is DetailBlock.Header -> 0
+            is DetailBlock.Body -> 1
+        }
+    }
+
 }

@@ -4,45 +4,43 @@ import android.app.Application
 import android.util.Log
 import com.start4.tvrssreader.data.local.RssDatabase
 import com.start4.tvrssreader.data.network.MyNetwork
+import com.start4.tvrssreader.data.rss.RssItemRepository
 
 class TvRssApp : Application() {
 
+    // 1. 使用 lazy 只有在真正用到时才初始化资源
+    val database by lazy { RssDatabase.getDatabase(this) }
+    val networkClient by lazy { MyNetwork.create(this) }
+    val repository by lazy { RssItemRepository(database.rssItemDao(), networkClient) }
+
     companion object {
-        const val MODE_PRIVATE = 0
-        lateinit var instance: TvRssApp
-            private set
-        lateinit var database: RssDatabase
-            private set
-        lateinit var network: MyNetwork
-            private set
+        // 提供一个全局访问入口
+        private var _instance: TvRssApp? = null
+        val instance: TvRssApp get() = _instance!!
+
+        // 快捷访问方法：这样你在 Activity 里可以直接 TvRssApp.repo 拿到数据
+        val repo get() = instance.repository
     }
 
     override fun onCreate() {
         super.onCreate()
-        instance = this
+        _instance = this
 
-        // 初始化日志
+        Log.i("TvRssApp", "应用启动，环境准备就绪")
+
+        // 初始化日志和异常捕获
         initLogging()
-
-        // 初始化数据库
-        database = RssDatabase.getDatabase(this)
-
-        // 初始化网络客户端（可加代理）
-        network = MyNetwork.create(this)
-
-        // 全局异常捕获
         initGlobalExceptionHandler()
     }
 
     private fun initLogging() {
-        // 可以换成 Timber 或其他日志库
         Log.i("TvRssApp", "Logging initialized")
     }
 
     private fun initGlobalExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            Log.e("TvRssApp", "Uncaught exception in thread ${thread.name}", throwable)
-            // 可以加崩溃上报或者弹出提示
+            Log.e("TvRssApp", "未捕获异常: ${thread.name}", throwable)
+            // 在电视端，这里可以考虑重启 Activity 或者显示一个友好的错误弹窗
         }
     }
 }

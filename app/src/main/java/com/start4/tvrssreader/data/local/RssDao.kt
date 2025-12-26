@@ -34,6 +34,11 @@ interface RssDao {
     @Query("SELECT channelId FROM rss_channel WHERE title = :title LIMIT 1")
     fun getChannelIdByTitle(title: String): Long?
 
+    @Query("SELECT * FROM rss_channel WHERE url = :string LIMIT 1")
+    fun getChannelIdByUrl(string: String): Long
+
     @Query("SELECT * FROM rss_item WHERE channelId = :channelId ORDER BY pubDate DESC")
     fun getRssItemsByChannelId(channelId: Long): LiveData<List<MyRssItem>>
+
+
 }

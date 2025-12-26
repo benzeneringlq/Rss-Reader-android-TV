@@ -1,5 +1,6 @@
 package com.start4.tvrssreader.data.network
 
+import IPv4OnlyDns
 import com.start4.tvrssreader.TvRssApp
 import com.start4.tvrssreader.setting.ProxyInfo
 import kotlinx.coroutines.Dispatchers
@@ -12,7 +13,7 @@ import java.net.Proxy
 
 class MyNetwork(proxyInfo: ProxyInfo? = null) {
 
-    private val client = OkHttpClient.Builder()
+    private val client = OkHttpClient.Builder().dns(IPv4OnlyDns)
 
     init {
         proxyInfo?.let {
@@ -46,8 +47,8 @@ class MyNetwork(proxyInfo: ProxyInfo? = null) {
             try {
                 val response = client.build().newCall(request).execute()
                 if (response.isSuccessful) {
-                    val xmlString = response.body?.string()
-                    xmlString ?: "Default Value"
+                    val xmlString = response.body.string()
+                    xmlString
                 } else {
                     // 处理失败的情况
                     println("Failed to fetch XML data: ${response.code}")
