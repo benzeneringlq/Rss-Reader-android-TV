@@ -7,7 +7,7 @@ import com.start4.tvrssreader.data.rss.MyRssItem
 
 class FeedAdapter(
     private val items: List<MyRssItem>,
-    private val onItemClick: (MyRssItem) -> Unit
+    private val onItemClick: (MyRssItem, Int) -> Unit
 ) : RecyclerView.Adapter<FeedAdapter.FeedVH>() {
 
     class FeedVH(val tv: TextView) : RecyclerView.ViewHolder(tv)
@@ -24,15 +24,15 @@ class FeedAdapter(
 
     override fun onBindViewHolder(holder: FeedVH, position: Int) {
         val item = items[position]
-        val textView = holder.itemView as TextView
-
+//        val textView = holder.itemView as TextView
+        val textView = holder.tv
         // 1. 设置显示文字
         textView.text = item.title
 
         // 2. 关键：绑定点击事件
         textView.setOnClickListener {
             // 调用你在 Activity 中传入的那个 lambda 函数
-            onItemClick(item)
+            onItemClick(item, holder.absoluteAdapterPosition)
         }
 
         // 3. 建议：添加焦点变化监听（为了让你在 TV 上看到选中的效果）
@@ -51,5 +51,3 @@ class FeedAdapter(
 
     override fun getItemCount() = items.size
 }
-
-class FeedVH(val tv: TextView) : RecyclerView.ViewHolder(tv)

@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.start4.tvrssreader.TvRssApp
+import com.start4.tvrssreader.data.GlobalData
 import com.start4.tvrssreader.data.rss.MyRssItem
 import com.start4.tvrssreader.data.rss.RssData
 import com.start4.tvrssreader.data.rss.RssItemRepository
@@ -82,16 +83,20 @@ class FeedListActivity : ComponentActivity() {
         currentItemsLiveData = repo.getRssItemsByChannel(channelId)
         currentItemsLiveData?.observe(this) { items ->
             // 使用同一个适配器通过 notifyDataSetChanged 更新，性能更好
-            itemAdapter = FeedAdapter(items) { item -> openDetails(item) }
+            itemAdapter = FeedAdapter(items) { item, position -> openDetails(item, position) }
             itemRv.adapter = itemAdapter
         }
     }
 
-    private fun openDetails(item: MyRssItem) {
+    private fun openDetails(item: MyRssItem, position: Int) {
+
+        GlobalData.currentRssItems = currentItemsLiveData?.value ?: emptyList()
         val intent = Intent(this, DetailsActivity::class.java).apply {
             putExtra("title", item.title)
             val displayContent = item.content ?: item.description ?: "无正文"
             putExtra("content", displayContent)
+            putExtra("current_index", position)
+            putExtra("channel_id", item.channelId)
         }
         startActivity(intent)
     }
