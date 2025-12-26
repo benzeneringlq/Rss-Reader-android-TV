@@ -8,13 +8,13 @@ import io.noties.markwon.Markwon
 
 class DetailsAdapter(private val items: List<DetailBlock>, private val markwon: Markwon) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-        
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val context = parent.context
         val tv = TextView(context).apply {
-            isFocusable = true
-            isFocusableInTouchMode = true
+            isFocusable = false
+            isFocusableInTouchMode = false
             setTextColor(android.graphics.Color.WHITE)
             // 默认焦点反馈
             val outValue = android.util.TypedValue()
@@ -29,6 +29,10 @@ class DetailsAdapter(private val items: List<DetailBlock>, private val markwon: 
         val item = items[position]
         // 假设你的 itemView 就是 TextView，如果不是，请用 holder.itemView.findViewById 取出
         val tv = holder.itemView as TextView
+        tv.isFocusable = false
+        tv.isClickable = false
+        tv.isFocusableInTouchMode = false
+        tv.movementMethod = null
 
         when (item) {
             is DetailBlock.Header -> {
@@ -39,6 +43,7 @@ class DetailsAdapter(private val items: List<DetailBlock>, private val markwon: 
             }
 
             is DetailBlock.Body -> {
+                tv.isFocusable = false
                 // 核心改动：不再使用 tv.text = item.text
                 // Markwon 会自动处理 item.text 中的 HTML/Markdown 标签
                 markwon.setMarkdown(tv, item.text)

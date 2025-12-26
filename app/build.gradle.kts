@@ -57,6 +57,8 @@ dependencies {
 //    implementation("io.noties.markwon:ext-html:${markwonVersion}")
     implementation("io.noties.markwon:image-coil:$markwonVersion") // 可选：处理图片
 
+    // 如果你还没集成 Coil 图片库本身，也需要加上
+    implementation("io.coil-kt:coil:2.7.0")
     implementation("androidx.room:room-runtime:2.8.4")
     annotationProcessor("androidx.room:room-compiler:2.8.4")
 // To use Kotlin annotation processing tool (kapt)
