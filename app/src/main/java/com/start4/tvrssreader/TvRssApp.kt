@@ -2,8 +2,8 @@ package com.start4.tvrssreader
 
 import android.app.Application
 import android.util.Log
-import com.start4.tvrssreader.data.local.RssDatabase
 import com.start4.tvrssreader.data.network.MyNetwork
+import com.start4.tvrssreader.data.rss.RssDatabase
 import com.start4.tvrssreader.data.rss.RssItemRepository
 
 class TvRssApp : Application() {

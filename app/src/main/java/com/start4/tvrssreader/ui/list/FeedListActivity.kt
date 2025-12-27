@@ -15,6 +15,7 @@ import com.start4.tvrssreader.data.GlobalData
 import com.start4.tvrssreader.data.rss.MyRssItem
 import com.start4.tvrssreader.data.rss.RssData
 import com.start4.tvrssreader.data.rss.RssItemRepository
+import com.start4.tvrssreader.setting.SettingsActivity
 import com.start4.tvrssreader.ui.detail.DetailsActivity
 import kotlinx.coroutines.launch
 
@@ -53,10 +54,16 @@ class FeedListActivity : ComponentActivity() {
         itemRv.nextFocusLeftId = channelRv.id
         // 2. 观察频道数据
         repo.allChannels.observe(this) { channels ->
-            channelAdapter = ChannelAdapter(channels) { selectedChannel ->
-                // 当左侧频道被选中时，切换右侧的内容
-                updateItemList(selectedChannel.channelId)
-            }
+            channelAdapter = ChannelAdapter(
+                channels,
+                onChannelFocused = { selectedChannel ->
+                    updateItemList(selectedChannel.channelId) // 焦点联动刷新右侧
+                },
+                onSettingsClick = {
+                    val intent = Intent(this, SettingsActivity::class.java)
+                    startActivity(intent) // 进入设置
+                }
+            )
             channelRv.adapter = channelAdapter
         }
 

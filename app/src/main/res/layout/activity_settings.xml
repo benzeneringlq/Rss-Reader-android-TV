@@ -1,0 +1,40 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:background="#121212">
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="手机扫码配置 RSS 与代理"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:layout_marginBottom="20dp" />
+
+    <ImageView
+            android:id="@+id/iv_qrcode"
+            android:layout_width="319dp"
+            android:layout_height="319dp"
+            android:background="#FFFFFF"
+            android:padding="8dp" />
+
+    <TextView
+            android:id="@+id/tv_url"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="正在获取地址..."
+            android:textColor="#BBBBBB"
+            android:textSize="18sp"
+            android:layout_marginTop="16dp" />
+
+    <TextView
+            android:id="@+id/tv_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="等待手机连接..."
+            android:textColor="#00FF00"
+            android:layout_marginTop="32dp" />
+</LinearLayout>

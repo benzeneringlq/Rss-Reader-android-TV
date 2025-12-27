@@ -18,7 +18,8 @@
             android:label="@string/app_name"
             android:supportsRtl="true"
             android:hardwareAccelerated="true"
-            android:theme="@style/Theme.TvRssReader">
+            android:theme="@style/Theme.TvRssReader"
+            android:usesCleartextTraffic="true">
 
         <activity
                 android:name=".ui.list.FeedListActivity"
@@ -34,6 +35,9 @@
         <activity
                 android:name=".ui.detail.DetailsActivity"
                 android:exported="false"
+                android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+                android:name=".setting.SettingsActivity"
                 android:theme="@style/Theme.AppCompat.NoActionBar" />
 
     </application>

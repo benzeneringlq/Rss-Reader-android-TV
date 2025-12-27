@@ -1,13 +1,10 @@
-package com.start4.tvrssreader.data.local
+package com.start4.tvrssreader.data.rss
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.start4.tvrssreader.data.rss.MyRssChannel
-import com.start4.tvrssreader.data.rss.MyRssItem
-
 
 @Dao
 interface RssDao {
@@ -15,11 +12,19 @@ interface RssDao {
     @Query("SELECT * FROM rss_item")
     fun getAllRssItems(): LiveData<List<MyRssItem>>
 
+    @Insert
+    fun insertRssItem(item: MyRssItem): Long
+
+    @Insert
+    fun insertRssItems(items: List<MyRssItem>): List<Long>
+
     @Query("SELECT * FROM rss_item WHERE channelId = :channelId")
     fun getAllRssItemsByChannelId(channelId: Long): LiveData<List<MyRssItem>>
 
-    @Insert
-    fun insertRssItem(item: MyRssItem): Long
+
+    @Query("SELECT * FROM rss_item WHERE channelId = :channelId ORDER BY pubDate DESC")
+    fun getRssItemsByChannelId(channelId: Long): LiveData<List<MyRssItem>>
+
 
     // RssChannel operations
     @Query("SELECT * FROM rss_channel")
@@ -36,9 +41,4 @@ interface RssDao {
 
     @Query("SELECT * FROM rss_channel WHERE url = :string LIMIT 1")
     fun getChannelIdByUrl(string: String): Long
-
-    @Query("SELECT * FROM rss_item WHERE channelId = :channelId ORDER BY pubDate DESC")
-    fun getRssItemsByChannelId(channelId: Long): LiveData<List<MyRssItem>>
-
-
 }

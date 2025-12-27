@@ -4,7 +4,6 @@ import android.icu.text.SimpleDateFormat
 import android.util.Log
 import androidx.lifecycle.LiveData
 import com.prof18.rssparser.model.RssChannel
-import com.start4.tvrssreader.data.local.RssDao
 import com.start4.tvrssreader.data.network.MyNetwork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

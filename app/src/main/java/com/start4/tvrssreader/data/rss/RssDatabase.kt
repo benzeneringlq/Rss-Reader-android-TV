@@ -1,4 +1,4 @@
-package com.start4.tvrssreader.data.local
+package com.start4.tvrssreader.data.rss
 
 import android.content.Context
 import androidx.room.Database
@@ -6,8 +6,6 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.start4.tvrssreader.data.rss.MyRssChannel
-import com.start4.tvrssreader.data.rss.MyRssItem
 
 /**
  * RSS 应用的 Room 数据库
@@ -65,7 +63,7 @@ abstract class RssDatabase : RoomDatabase() {
                 // .allowMainThreadQueries()
 
                 // 数据库创建或打开时的回调
-                .addCallback(object : RoomDatabase.Callback() {
+                .addCallback(object : Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)
                         // 数据库首次创建时的操作（如预填充数据）
