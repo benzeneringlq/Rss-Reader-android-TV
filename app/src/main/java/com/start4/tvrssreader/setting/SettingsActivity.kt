@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import com.start4.tvrssreader.R
+import com.start4.tvrssreader.TvRssApp
 import com.start4.tvrssreader.util.MyUtil
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -24,7 +25,7 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        settingsManager = SettingsManager(this)
+        settingsManager = (application as TvRssApp).settingsManager
 
         setupServerAndUI()
         observeSettings()

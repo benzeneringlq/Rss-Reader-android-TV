@@ -5,13 +5,23 @@ import android.util.Log
 import com.start4.tvrssreader.data.network.MyNetwork
 import com.start4.tvrssreader.data.rss.RssDatabase
 import com.start4.tvrssreader.data.rss.RssItemRepository
+import com.start4.tvrssreader.setting.SettingsManager
 
 class TvRssApp : Application() {
 
     // 1. 使用 lazy 只有在真正用到时才初始化资源
     val database by lazy { RssDatabase.getDatabase(this) }
     val networkClient by lazy { MyNetwork.create(this) }
-    val repository by lazy { RssItemRepository(database.rssItemDao(), networkClient) }
+    val settingsManager: SettingsManager by lazy {
+        SettingsManager(this)
+    }
+    val repository by lazy {
+        RssItemRepository(
+            database.rssItemDao(),
+            networkClient,
+            settingsManager
+        )
+    }
 
     companion object {
         // 提供一个全局访问入口

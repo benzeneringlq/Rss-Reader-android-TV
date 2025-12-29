@@ -5,9 +5,11 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import com.prof18.rssparser.model.RssChannel
 import com.start4.tvrssreader.data.network.MyNetwork
+import com.start4.tvrssreader.setting.SettingsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
@@ -19,13 +21,12 @@ import java.util.Locale
  */
 class RssItemRepository(
     private val rssItemDao: RssDao,
-    private val myNetworkClient: MyNetwork
+    private val myNetworkClient: MyNetwork,
+    private val settingsManager: SettingsManager
 ) {
     //        private val rssItemDao = RssDatabase.getDatabase(application).rssItemDao()
     //    private val myNetworkClient = MyNetwork()
     private val parseRss = ParseRss()
-
-    private val dateFormatter = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH)
 
     // 从数据库获取所有 RSS 项目（LiveData 自动更新）
     val allRssItems: LiveData<List<MyRssItem>> = rssItemDao.getAllRssItems()
@@ -61,9 +62,7 @@ class RssItemRepository(
                 val myRssChannel = MyRssChannel(
                     url = rssChannel.link,
                     title = rssChannel.title,
-                    leastDate = rssChannel.items.firstOrNull()?.pubDate?.let {
-                        dateFormatter.parse(it)?.time
-                    } ?: System.currentTimeMillis()
+                    leastDate = parseDateToLong(rssChannel.items.firstOrNull()?.pubDate)
                 )
                 channelId = rssItemDao.insertChannel(myRssChannel)
             }
@@ -76,7 +75,7 @@ class RssItemRepository(
                     description = item.description,
                     content = item.content ?: item.description,
                     link = item.link,
-                    pubDate = item.pubDate,
+                    pubDate = parseDateToLong(item.pubDate),
                     image = item.image
                 )
             }
@@ -88,35 +87,24 @@ class RssItemRepository(
         }
     }
 
-    /**
-     * 刷新所有 RSS 频道
-     */
-//    suspend fun refreshAllChannels(): Result<Unit> {
-//        return withContext(Dispatchers.IO) {
-//            try {
-//                val urls = getRssChannelUrls()
-//                urls.forEach { url ->
-//                    Log.d("RssItemRepository", "Refreshing RSS channel: $url")
-//                    fetchAndSaveRssChannel(url)
-//                }
-//                Result.success(Unit)
-//            } catch (e: Exception) {
-//                Result.failure(e)
-//            }
-//        }
-//    }
     suspend fun refreshAllChannels(urls: List<String>) {
         withContext(Dispatchers.IO) {
-            // 使用 async 并发开启所有请求
-            val deferredResults = urls.map { url ->
+            // 1. 获取最新的配置快照（通过 Flow 的 first() 获取当前值）
+            // 注意：这里需要 import kotlinx.coroutines.flow.first
+            val config = settingsManager.rssConfigFlow.first()
+
+            // 2. 汇总 URL (包含 RssData.url)
+            val allUrls = config.getAllTargetUrls(RssData.url)
+
+            Log.d("RSS_SYNC", "开始同步，共 ${allUrls.size} 个源")
+
+            // 3. 并行抓取
+            val deferredResults = allUrls.map { url ->
                 async {
                     safeFetchAndSave(url)
                 }
             }
-
-            // 等待所有结果返回（即使有的快有的慢，也会并行执行）
-            val allResults = deferredResults.awaitAll()
-
+            deferredResults.awaitAll()
             Log.d("RSS_SYNC", "所有订阅更新完成")
         }
     }
@@ -124,11 +112,10 @@ class RssItemRepository(
     // 处理单个 URL 的抓取，增加异常捕获
     suspend fun safeFetchAndSave(url: String): List<MyRssItem> {
         return try {
-            // 你的原始逻辑
             fetchAndSaveRssChannel(url)
         } catch (e: Exception) {
             Log.e("RSS_ERROR", "无法加载网址: $url, 错误: ${e.message}")
-            emptyList() // 报错了就返回空列表，不阻塞别人
+            emptyList()
         }
     }
 
@@ -146,5 +133,27 @@ class RssItemRepository(
      */
     fun getRssItemsByChannel(channelId: Long): LiveData<List<MyRssItem>> {
         return rssItemDao.getRssItemsByChannelId(channelId)
+    }
+
+    private fun parseDateToLong(dateString: String?): Long {
+        if (dateString.isNullOrBlank()) return System.currentTimeMillis()
+
+        // 常见的 RSS 日期格式 (RFC 822 / ISO 8601)
+        val formats = listOf(
+            "EEE, dd MMM yyyy HH:mm:ss Z",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            "yyyy-MM-dd HH:mm:ss",
+            "EEE, dd MMM yyyy HH:mm:ss zzz"
+        )
+
+        for (format in formats) {
+            try {
+                val sdf = SimpleDateFormat(format, Locale.ENGLISH)
+                return sdf.parse(dateString)?.time ?: continue
+            } catch (e: Exception) {
+                continue
+            }
+        }
+        return System.currentTimeMillis() // 解析失败则排在最前面/当前时间
     }
 }

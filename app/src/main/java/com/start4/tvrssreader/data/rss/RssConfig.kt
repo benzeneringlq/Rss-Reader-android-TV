@@ -1,5 +1,3 @@
-package com.start4.tvrssreader.data.rss
-
 import com.start4.tvrssreader.data.network.ProxyType
 
 data class RssConfig(
@@ -7,16 +5,21 @@ data class RssConfig(
     val proxyHost: String,
     val proxyPort: Int,
     val rssHubRoot: String,
-    val rssHubRoutesRaw: String, // 对应存储里的 RSSHUB_ROUTES
-    val customRssRaw: String     // 对应存储里的 CUSTOM_RSS
+    val rssHubRoutesRaw: String,
+    val customRssRaw: String
 ) {
-    // 自动拼接 RSSHub 的全路径列表
+    // 1. RSSHub 拼接后的完整 URL 列表
     val rssHubUrls: List<String>
         get() = rssHubRoutesRaw.lines()
             .filter { it.isNotBlank() }
             .map { "${rssHubRoot.removeSuffix("/")}/${it.removePrefix("/")}" }
 
-    // 普通 RSS 列表
+    // 2. 用户手动输入的普通 RSS 列表
     val customRssUrls: List<String>
         get() = customRssRaw.lines().filter { it.isNotBlank() }
+
+    // 3. 汇总所有 URL：内置 RssData + RSSHub + 自定义
+    fun getAllTargetUrls(internalUrls: List<String>): List<String> {
+        return (internalUrls + rssHubUrls + customRssUrls).distinct()
+    }
 }

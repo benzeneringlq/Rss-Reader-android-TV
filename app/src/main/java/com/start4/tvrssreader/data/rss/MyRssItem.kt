@@ -25,6 +25,6 @@ data class MyRssItem(
     var description: String? = null,
     var content: String? = null,
     var link: String? = null,
-    var pubDate: String? = null,
+    var pubDate: Long? = null,
     var image: String? = null,
 )

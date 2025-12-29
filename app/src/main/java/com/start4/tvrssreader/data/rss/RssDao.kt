@@ -9,17 +9,14 @@ import androidx.room.Update
 @Dao
 interface RssDao {
     // RssItem operations
-    @Query("SELECT * FROM rss_item")
-    fun getAllRssItems(): LiveData<List<MyRssItem>>
-
     @Insert
     fun insertRssItem(item: MyRssItem): Long
 
     @Insert
     fun insertRssItems(items: List<MyRssItem>): List<Long>
 
-    @Query("SELECT * FROM rss_item WHERE channelId = :channelId")
-    fun getAllRssItemsByChannelId(channelId: Long): LiveData<List<MyRssItem>>
+    @Query("SELECT * FROM rss_item ORDER BY pubDate DESC")
+    fun getAllRssItems(): LiveData<List<MyRssItem>>
 
 
     @Query("SELECT * FROM rss_item WHERE channelId = :channelId ORDER BY pubDate DESC")

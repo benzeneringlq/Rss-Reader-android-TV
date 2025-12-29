@@ -1,5 +1,6 @@
 package com.start4.tvrssreader.setting
 
+import RssConfig
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -9,7 +10,6 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.start4.tvrssreader.data.network.ProxyType
-import com.start4.tvrssreader.data.rss.RssConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

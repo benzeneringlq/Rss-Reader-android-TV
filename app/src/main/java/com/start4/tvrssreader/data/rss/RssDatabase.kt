@@ -51,10 +51,10 @@ abstract class RssDatabase : RoomDatabase() {
          * 构建数据库实例
          */
         private fun buildDatabase(context: Context): RssDatabase {
-            return Room.inMemoryDatabaseBuilder(
+            return Room.databaseBuilder(
                 context.applicationContext,
                 RssDatabase::class.java,
-//                DATABASE_NAME
+                DATABASE_NAME
             )
                 // 添加数据库迁移策略（示例）
                 // .addMigrations(MIGRATION_1_2)
