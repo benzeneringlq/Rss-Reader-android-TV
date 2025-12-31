@@ -8,7 +8,7 @@
             android:required="false" />
     <uses-feature
             android:name="android.software.leanback"
-            android:required="true" />
+            android:required="false" />
 
     <application
             android:name=".TvRssApp"
@@ -25,10 +25,14 @@
                 android:name=".ui.list.FeedListActivity"
                 android:configChanges="orientation|screenSize|keyboard|keyboardHidden|navigation"
                 android:exported="true"
-                android:launchMode="singleTask">
+                android:launchMode="singleTask"
+                android:screenOrientation="landscape">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 

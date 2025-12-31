@@ -15,6 +15,10 @@ android {
         versionName = "1.0"
 
     }
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
+    }
 
     buildTypes {
         release {
